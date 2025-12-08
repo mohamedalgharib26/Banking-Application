@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.gharib.banking.Abstract.BranchService;
+import com.gharib.banking.mappers.BranchMapper;
 import com.gharib.banking.models.Bank;
 import com.gharib.banking.models.Branch;
 import com.gharib.banking.models.Dto.BranchReq;
@@ -25,23 +26,33 @@ public class BranchServiceImp implements BranchService {
     @Autowired
     private BankRepository bankRepo;
 
+    @Autowired
+    private BranchMapper branchMapper;
+
     @Override
     public Optional<BranchRes> findById(UUID id) {
-        return branchRepo.findById(id).map(this::convertToBranchRes);
+        return branchRepo.findById(id).map(branchMapper::toResponse);
     }
 
     @Override
     public List<BranchRes> findAll() {
         return branchRepo.findAll().stream()
-                .map(this::convertToBranchRes)
+                .map(branchMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
     public BranchRes create(BranchReq request) {
-        Branch branch = convertToBranch(request);
+        Branch branch = branchMapper.toEntity(request);
+
+        if (request.getBankId() != null) {
+            Bank bank = bankRepo.findById(request.getBankId())
+                    .orElseThrow(() -> new RuntimeException("Bank not found with id: " + request.getBankId()));
+            branch.setBank(bank);
+        }
+
         Branch savedBranch = branchRepo.save(branch);
-        return convertToBranchRes(savedBranch);
+        return branchMapper.toResponse(savedBranch);
     }
 
     @Override
@@ -49,10 +60,17 @@ public class BranchServiceImp implements BranchService {
         Branch branch = branchRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Branch not found with id: " + id));
 
-        updateBranchFromRequest(branch, request);
+        branch.setName(request.getName());
+        branch.setAddress(request.getAddress());
+
+        if (request.getBankId() != null) {
+            Bank bank = bankRepo.findById(request.getBankId())
+                    .orElseThrow(() -> new RuntimeException("Bank not found with id: " + request.getBankId()));
+            branch.setBank(bank);
+        }
 
         Branch updatedBranch = branchRepo.save(branch);
-        return convertToBranchRes(updatedBranch);
+        return branchMapper.toResponse(updatedBranch);
     }
 
     @Override
@@ -63,50 +81,13 @@ public class BranchServiceImp implements BranchService {
     @Override
     public Optional<BranchRes> findByName(String name) {
         Branch branch = branchRepo.findByName(name);
-        return branch != null ? Optional.of(convertToBranchRes(branch)) : Optional.empty();
+        return branch != null ? Optional.of(branchMapper.toResponse(branch)) : Optional.empty();
     }
 
     @Override
     public List<BranchRes> findByBankId(UUID bankId) {
         return branchRepo.findByBankId(bankId).stream()
-                .map(this::convertToBranchRes)
+                .map(branchMapper::toResponse)
                 .collect(Collectors.toList());
-    }
-
-    // Helper methods for conversion
-    private BranchRes convertToBranchRes(Branch branch) {
-        BranchRes response = new BranchRes();
-        response.setId(branch.getId());
-        response.setName(branch.getName());
-        response.setAddress(branch.getAddress());
-        response.setBankId(branch.getBank() != null ? branch.getBank().getId() : null);
-        response.setCreatedAt(branch.getCreatedAt());
-        response.setUpdatedAt(branch.getUpdatedAt());
-        return response;
-    }
-
-    private Branch convertToBranch(BranchReq request) {
-        Branch branch = new Branch();
-        branch.setName(request.getName());
-        branch.setAddress(request.getAddress());
-
-        if (request.getBankId() != null) {
-            Bank bank = bankRepo.findById(request.getBankId())
-                    .orElseThrow(() -> new RuntimeException("Bank not found with id: " + request.getBankId()));
-            branch.setBank(bank);
-        }
-
-        return branch;
-    }
-
-    private void updateBranchFromRequest(Branch branch, BranchReq request) {
-        branch.setName(request.getName());
-        branch.setAddress(request.getAddress());
-
-        if (request.getBankId() != null) {
-            Bank bank = bankRepo.findById(request.getBankId())
-                    .orElseThrow(() -> new RuntimeException("Bank not found with id: " + request.getBankId()));
-            branch.setBank(bank);
-        }
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.gharib.banking.Abstract.CustomerService;
+import com.gharib.banking.mappers.CustomerMapper;
 import com.gharib.banking.models.Customer;
 import com.gharib.banking.models.Dto.CustomerReq;
 import com.gharib.banking.models.Dto.CustomerRes;
@@ -20,23 +21,26 @@ public class CustomerServiceImp implements CustomerService {
     @Autowired
     private CustomerRepository customerRepo;
 
+    @Autowired
+    private CustomerMapper customerMapper;
+
     @Override
     public Optional<CustomerRes> findById(UUID id) {
-        return customerRepo.findById(id).map(this::convertToCustomerRes);
+        return customerRepo.findById(id).map(customerMapper::toResponse);
     }
 
     @Override
     public List<CustomerRes> findAll() {
         return customerRepo.findAll().stream()
-                .map(this::convertToCustomerRes)
+                .map(customerMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
     public CustomerRes create(CustomerReq request) {
-        Customer customer = convertToCustomer(request);
+        Customer customer = customerMapper.toEntity(request);
         Customer savedCustomer = customerRepo.save(customer);
-        return convertToCustomerRes(savedCustomer);
+        return customerMapper.toResponse(savedCustomer);
     }
 
     @Override
@@ -44,10 +48,12 @@ public class CustomerServiceImp implements CustomerService {
         Customer customer = customerRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Customer not found with id: " + id));
 
-        updateCustomerFromRequest(customer, request);
+        customer.setName(request.getName());
+        customer.setAddress(request.getAddress());
+        customer.setPhone(request.getPhone());
 
         Customer updatedCustomer = customerRepo.save(customer);
-        return convertToCustomerRes(updatedCustomer);
+        return customerMapper.toResponse(updatedCustomer);
     }
 
     @Override
@@ -58,38 +64,12 @@ public class CustomerServiceImp implements CustomerService {
     @Override
     public Optional<CustomerRes> findByName(String name) {
         Customer customer = customerRepo.findByName(name);
-        return customer != null ? Optional.of(convertToCustomerRes(customer)) : Optional.empty();
+        return customer != null ? Optional.of(customerMapper.toResponse(customer)) : Optional.empty();
     }
 
     @Override
     public Optional<CustomerRes> findByPhone(Integer phone) {
         Customer customer = customerRepo.findByPhone(phone);
-        return customer != null ? Optional.of(convertToCustomerRes(customer)) : Optional.empty();
-    }
-
-    // Helper methods for conversion
-    private CustomerRes convertToCustomerRes(Customer customer) {
-        CustomerRes response = new CustomerRes();
-        response.setId(customer.getId());
-        response.setName(customer.getName());
-        response.setAddress(customer.getAddress());
-        response.setPhone(customer.getPhone());
-        response.setCreatedAt(customer.getCreatedAt());
-        response.setUpdatedAt(customer.getUpdatedAt());
-        return response;
-    }
-
-    private Customer convertToCustomer(CustomerReq request) {
-        Customer customer = new Customer();
-        customer.setName(request.getName());
-        customer.setAddress(request.getAddress());
-        customer.setPhone(request.getPhone());
-        return customer;
-    }
-
-    private void updateCustomerFromRequest(Customer customer, CustomerReq request) {
-        customer.setName(request.getName());
-        customer.setAddress(request.getAddress());
-        customer.setPhone(request.getPhone());
+        return customer != null ? Optional.of(customerMapper.toResponse(customer)) : Optional.empty();
     }
 }

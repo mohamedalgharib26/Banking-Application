@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.gharib.banking.Abstract.AccountService;
+import com.gharib.banking.mappers.AccountMapper;
 import com.gharib.banking.models.Account;
 import com.gharib.banking.models.Branch;
 import com.gharib.banking.models.Dto.AccountReq;
@@ -25,23 +26,33 @@ public class AccountServiceImp implements AccountService {
     @Autowired
     private BranchRepository branchRepo;
 
+    @Autowired
+    private AccountMapper accountMapper;
+
     @Override
     public Optional<AccountRes> findById(UUID id) {
-        return accountRepo.findById(id).map(this::convertToAccountRes);
+        return accountRepo.findById(id).map(accountMapper::toResponse);
     }
 
     @Override
     public List<AccountRes> findAll() {
         return accountRepo.findAll().stream()
-                .map(this::convertToAccountRes)
+                .map(accountMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
     public AccountRes create(AccountReq request) {
-        Account account = convertToAccount(request);
+        Account account = accountMapper.toEntity(request);
+
+        if (request.getBranchId() != null) {
+            Branch branch = branchRepo.findById(request.getBranchId())
+                    .orElseThrow(() -> new RuntimeException("Branch not found with id: " + request.getBranchId()));
+            account.setBranch(branch);
+        }
+
         Account savedAccount = accountRepo.save(account);
-        return convertToAccountRes(savedAccount);
+        return accountMapper.toResponse(savedAccount);
     }
 
     @Override
@@ -49,10 +60,18 @@ public class AccountServiceImp implements AccountService {
         Account account = accountRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Account not found with id: " + id));
 
-        updateAccountFromRequest(account, request);
+        account.setAccount_No(request.getAccountNo());
+        account.setAcc_Type(request.getAccType());
+        account.setBalance(request.getBalance());
+
+        if (request.getBranchId() != null) {
+            Branch branch = branchRepo.findById(request.getBranchId())
+                    .orElseThrow(() -> new RuntimeException("Branch not found with id: " + request.getBranchId()));
+            account.setBranch(branch);
+        }
 
         Account updatedAccount = accountRepo.save(account);
-        return convertToAccountRes(updatedAccount);
+        return accountMapper.toResponse(updatedAccount);
     }
 
     @Override
@@ -63,53 +82,13 @@ public class AccountServiceImp implements AccountService {
     @Override
     public Optional<AccountRes> findByAccountNo(Integer accountNo) {
         Account account = accountRepo.findByAccountNo(accountNo);
-        return account != null ? Optional.of(convertToAccountRes(account)) : Optional.empty();
+        return account != null ? Optional.of(accountMapper.toResponse(account)) : Optional.empty();
     }
 
     @Override
     public List<AccountRes> findByBranchId(UUID branchId) {
         return accountRepo.findByBranchId(branchId).stream()
-                .map(this::convertToAccountRes)
+                .map(accountMapper::toResponse)
                 .collect(Collectors.toList());
-    }
-
-    // Helper methods for conversion
-    private AccountRes convertToAccountRes(Account account) {
-        AccountRes response = new AccountRes();
-        response.setId(account.getId());
-        response.setAccountNo(account.getAccount_No());
-        response.setAccType(account.getAcc_Type());
-        response.setBalance(account.getBalance());
-        response.setBranchId(account.getBranch() != null ? account.getBranch().getId() : null);
-        response.setCreatedAt(account.getCreatedAt());
-        response.setUpdatedAt(account.getUpdatedAt());
-        return response;
-    }
-
-    private Account convertToAccount(AccountReq request) {
-        Account account = new Account();
-        account.setAccount_No(request.getAccountNo());
-        account.setAcc_Type(request.getAccType());
-        account.setBalance(request.getBalance());
-
-        if (request.getBranchId() != null) {
-            Branch branch = branchRepo.findById(request.getBranchId())
-                    .orElseThrow(() -> new RuntimeException("Branch not found with id: " + request.getBranchId()));
-            account.setBranch(branch);
-        }
-
-        return account;
-    }
-
-    private void updateAccountFromRequest(Account account, AccountReq request) {
-        account.setAccount_No(request.getAccountNo());
-        account.setAcc_Type(request.getAccType());
-        account.setBalance(request.getBalance());
-
-        if (request.getBranchId() != null) {
-            Branch branch = branchRepo.findById(request.getBranchId())
-                    .orElseThrow(() -> new RuntimeException("Branch not found with id: " + request.getBranchId()));
-            account.setBranch(branch);
-        }
     }
 }
