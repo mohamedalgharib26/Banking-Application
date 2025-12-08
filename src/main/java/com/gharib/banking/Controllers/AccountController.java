@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gharib.banking.models.Dto.AccountReq;
 import com.gharib.banking.models.Dto.AccountRes;
+
+import jakarta.validation.Valid;
 import com.gharib.banking.services.AccountServiceImp;
 
 @RestController
@@ -55,12 +57,12 @@ public class AccountController {
     }
 
     @PostMapping
-    public AccountRes createAccount(@RequestBody AccountReq accountReq) {
+    public AccountRes createAccount(@Valid @RequestBody AccountReq accountReq) {
         return accountService.create(accountReq);
     }
 
     @PutMapping("/{id}")
-    public AccountRes updateAccount(@PathVariable UUID id, @RequestBody AccountReq accountReq) {
+    public AccountRes updateAccount(@PathVariable UUID id, @Valid @RequestBody AccountReq accountReq) {
         return accountService.update(id, accountReq);
     }
 

@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gharib.banking.models.Dto.CustomerReq;
 import com.gharib.banking.models.Dto.CustomerRes;
+
+import jakarta.validation.Valid;
 import com.gharib.banking.services.CustomerServiceImp;
 
 @RestController
@@ -57,12 +59,12 @@ public class CustomerController {
     }
 
     @PostMapping
-    public CustomerRes createCustomer(@RequestBody CustomerReq customerReq) {
+    public CustomerRes createCustomer(@Valid @RequestBody CustomerReq customerReq) {
         return customerService.create(customerReq);
     }
 
     @PutMapping("/{id}")
-    public CustomerRes updateCustomer(@PathVariable UUID id, @RequestBody CustomerReq customerReq) {
+    public CustomerRes updateCustomer(@PathVariable UUID id, @Valid @RequestBody CustomerReq customerReq) {
         return customerService.update(id, customerReq);
     }
 

@@ -20,6 +20,8 @@ import com.gharib.banking.models.Dto.BankReq;
 import com.gharib.banking.models.Dto.BankRes;
 import com.gharib.banking.services.BankServiceImp;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/banks")
 public class BankController {
@@ -68,12 +70,12 @@ public class BankController {
     }
 
     @PostMapping
-    public BankRes createBank(@RequestBody BankReq bankReq) {
+    public BankRes createBank(@Valid @RequestBody BankReq bankReq) {
         return bankService.create(bankReq);
     }
 
     @PutMapping("/{id}")
-    public BankRes updateBank(@PathVariable UUID id, @RequestBody BankReq bankReq) {
+    public BankRes updateBank(@PathVariable UUID id, @Valid @RequestBody BankReq bankReq) {
         return bankService.update(id, bankReq);
     }
 

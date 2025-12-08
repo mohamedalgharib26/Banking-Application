@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gharib.banking.models.Dto.LoanReq;
 import com.gharib.banking.models.Dto.LoanRes;
+
+import jakarta.validation.Valid;
 import com.gharib.banking.services.LoanServiceImp;
 
 @RestController
@@ -53,12 +55,12 @@ public class LoanController {
     }
 
     @PostMapping
-    public LoanRes createLoan(@RequestBody LoanReq loanReq) {
+    public LoanRes createLoan(@Valid @RequestBody LoanReq loanReq) {
         return loanService.create(loanReq);
     }
 
     @PutMapping("/{id}")
-    public LoanRes updateLoan(@PathVariable UUID id, @RequestBody LoanReq loanReq) {
+    public LoanRes updateLoan(@PathVariable UUID id, @Valid @RequestBody LoanReq loanReq) {
         return loanService.update(id, loanReq);
     }
 

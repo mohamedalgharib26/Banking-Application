@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gharib.banking.models.Dto.BranchReq;
 import com.gharib.banking.models.Dto.BranchRes;
+
+import jakarta.validation.Valid;
 import com.gharib.banking.services.BranchServiceImp;
 
 @RestController
@@ -55,12 +57,12 @@ public class BranchController {
     }
 
     @PostMapping
-    public BranchRes createBranch(@RequestBody BranchReq branchReq) {
+    public BranchRes createBranch(@Valid @RequestBody BranchReq branchReq) {
         return branchService.create(branchReq);
     }
 
     @PutMapping("/{id}")
-    public BranchRes updateBranch(@PathVariable UUID id, @RequestBody BranchReq branchReq) {
+    public BranchRes updateBranch(@PathVariable UUID id, @Valid @RequestBody BranchReq branchReq) {
         return branchService.update(id, branchReq);
     }
 
