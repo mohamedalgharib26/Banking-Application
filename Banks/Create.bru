@@ -1,0 +1,28 @@
+meta {
+  name: Create
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{url}}/banks
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: user
+  password: 123
+}
+
+body:json {
+  {
+    "name": "HSBCx2",
+    "address": "35 Arish Street"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

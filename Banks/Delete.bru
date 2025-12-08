@@ -1,0 +1,21 @@
+meta {
+  name: Delete
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{url}}/banks/89d47106-8527-4720-afdb-1ca21f89adcb
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: user
+  password: 123
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
