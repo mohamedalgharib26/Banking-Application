@@ -476,7 +476,6 @@ spring.jpa.hibernate.ddl-auto=update
 - [ ] Add transaction management with `@Transactional`
 - [ ] Create custom queries with JPQL and native SQL
 - [ ] Implement soft delete functionality
-- [ ] Add audit fields (createdBy, updatedBy)
 
 ---
 
