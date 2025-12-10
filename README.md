@@ -497,7 +497,7 @@ spring.jpa.hibernate.ddl-auto=update
 
 ## 👨‍💻 Author
 
-**Learning Project** - Part of Java & Spring Boot Learning Journey
+**Learning Project** - Part of Java & Spring Boot Learning Journey- Mohamed Elgharib
 
 ---
 
